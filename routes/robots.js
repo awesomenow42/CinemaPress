@@ -55,16 +55,21 @@ router.get('/?', function(req, res) {
   var host = req.get('host');
   var host_domain = url.parse(protocol + '://' + host).hostname;
 
-  if (!config.user_bot) {
+  if (!config.user_bot) { 
+    // Не бот - всегда закрываем
     if (!req.userinfo.bot.main) {
       return res.send('User-agent: *\nDisallow: /');
     }
-    if (
-      (config.bomain || config.ru.bomain) &&
-      (host_domain === config.subdomain + config.domain ||
-        host_domain === config.ru.subdomain + config.ru.domain ||
-        config.mirrors.indexOf(host_domain) + 1)
-    ) {
+  
+    // Формируем список разрешённых доменов для ботов
+    var allowedBotDomains = [
+      config.botdomain + config.bomain,
+      config.alt.botdomain + config.alt.bomain,
+      config.ru.botdomain + config.ru.bomain
+    ].filter(Boolean);
+  
+    // Если текущий домен не входит в список bot-доменов - закрываем
+    if (allowedBotDomains.indexOf(host_domain) === -1) {
       return res.send('User-agent: *\nDisallow: /');
     }
   }
